@@ -47,4 +47,13 @@ pipeline {
             }
         }
     }
+    post {
+        success {
+            echo 'Pipeline successfully completed!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+            // Add failure notifications here (e.g., Slack, email)
+        }
+    }
 }
