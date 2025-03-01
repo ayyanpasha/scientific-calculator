@@ -1,7 +1,9 @@
 ---
 - name: Deploy Calculator
   hosts: localhost
-  become: yes
+  become: yes           # Enable sudo
+  become_method: sudo   # Explicitly use sudo
+  become_user: root     # Run tasks as root
   tasks:
     - name: Install Docker
       apt:
