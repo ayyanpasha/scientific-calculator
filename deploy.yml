@@ -1,0 +1,20 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+    - name: Pull Docker image
+      docker_image:
+        name: ayyanpasha/calculator
+        source: pull
+    - name: Run container
+      docker_container:
+        name: calculator
+        image: ayyanpasha/calculator
+        state: started
