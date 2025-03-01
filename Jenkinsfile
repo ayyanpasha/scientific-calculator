@@ -1,42 +1,50 @@
 pipeline {
     agent any
-
     environment {
-        DOCKER_IMAGE = "ayyanpasha/calculator"
-        VERSION = "latest"
+        DOCKER_IMAGE_NAME = 'scientific-calculator'
+        GITHUB_REPO_URL = 'https://github.com/ayyanpasha/scientific-calculator.git'
     }
-
     stages {
-        // Stage 1: Build the project with Maven
-        stage('Build') {
-            steps {
-                sh 'mvn clean package'
-            }
-        }
-
-        // Stage 2: Build and Push Docker Image
-        stage('Build & Push Docker Image') {
+        stage('Checkout') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-                        def image = docker.build("${DOCKER_IMAGE}:${VERSION}")
-                        image.push()
+                    git branch: 'main', url: "${GITHUB_REPO_URL}"
+                }
+            }
+        }
+        stage('Build and Test') {
+            steps {
+                script {
+                    sh 'mvn clean install'
+                }
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE_NAME}", '.')
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', 'DockerHubCred') {
+                        sh "docker tag ${DOCKER_IMAGE_NAME} ayyanpasha/scientific-calculator:0.0.1"
+                        sh "docker push ayyanpasha/scientific-calculator"
                     }
                 }
             }
         }
-
-        // Stage 3: Deploy with Ansible
-        stage('Deploy with Ansible') {
+        stage('Run Ansible Playbook') {
             steps {
-                sh 'ansible-playbook -i inventory.ini deploy.yml --extra-vars "docker_image=${DOCKER_IMAGE}:${VERSION}"'
+                script {
+                    ansiblePlaybook(
+                        playbook: 'deploy.yml',
+                        inventory: 'inventory'
+                    )
+                }
             }
-        }
-    }
-
-    post {
-        always {
-            cleanWs() // Clean workspace after build
         }
     }
 }
