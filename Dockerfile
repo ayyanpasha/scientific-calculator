@@ -5,12 +5,12 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Stage 2: Run the application with Amazon Corretto (OpenJDK 17)
+# Stage 2: Run the application
 FROM amazoncorretto:17
 WORKDIR /app
 
-# Copy the generated JAR file from the builder stage
-COPY --from=build /app/target/*-jar-with-dependencies.jar /app/SPE_Mini_Project-0.0.1-SNAPSHOT.jar
+# Copy the JAR with the correct name
+COPY --from=build /app/target/SPE_Mini_Project-0.0.1-SNAPSHOT-jar-with-dependencies.jar /app/app.jar
 
-# Make sure the entry point uses the correct JAR name
-ENTRYPOINT ["java", "-jar", "SPE_Mini_Project-0.0.1-SNAPSHOT-jar-with-dependencies.jar"]
+# Use the simplified JAR name
+ENTRYPOINT ["java", "-jar", "app.jar"]
