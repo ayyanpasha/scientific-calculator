@@ -18,3 +18,5 @@
         name: calculator
         image: ayyanpasha/scientific-calculator
         state: started
+        ports:
+          - "8081:8080"
