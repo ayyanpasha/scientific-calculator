@@ -3,6 +3,8 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME = 'scientific-calculator'
         GITHUB_REPO_URL = 'https://github.com/ayyanpasha/scientific-calculator.git'
+        DOCKER_REGISTRY = 'docker.io'
+        IMAGE_TAG = '0.0.1'
     }
     stages {
         stage('Checkout') {
@@ -22,7 +24,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKER_IMAGE_NAME}", '.')
+                    docker.build("${DOCKER_IMAGE_NAME}:${IMAGE_TAG}", '.')
+                    // Optionally, also tag the image as "latest" for consistency
+                    docker.build("${DOCKER_IMAGE_NAME}:latest", '.')
                 }
             }
         }
@@ -30,8 +34,13 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', 'DockerHubCred') {
-                        sh "docker tag ${DOCKER_IMAGE_NAME} ayyanpasha/scientific-calculator:0.0.1"
-                        sh "docker push ayyanpasha/scientific-calculator"
+                        // Tag the image with the appropriate version and latest
+                        sh "docker tag ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/ayyanpasha/scientific-calculator:${IMAGE_TAG}"
+                        sh "docker tag ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/ayyanpasha/scientific-calculator:latest"
+
+                        // Push both the versioned tag and latest tag
+                        sh "docker push ${DOCKER_REGISTRY}/ayyanpasha/scientific-calculator:${IMAGE_TAG}"
+                        sh "docker push ${DOCKER_REGISTRY}/ayyanpasha/scientific-calculator:latest"
                     }
                 }
             }
